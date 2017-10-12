@@ -1,0 +1,57 @@
+Vagrant Introduction
+====================
+- Vagrant is an open source tool for workin gwith virtual environments.
+- It acts as a wrapper and sits on top of the virtulization solutions (VMware, Hyper-V, VirtualBox or libvirt)
+- Provide simple command line interface to manage the VMs with custom configuration
+- No need to learn different CLI commands specific to virtualization provider used.
+- Vagrant is capable of executing configuration management software like Puppet/Ansible/Chef etc once the base system is ready.
+- Developers can create/deploy multiple development environments in minutes.
+- As Vagrant is wrapper only, one can choose any guest OS supported by the virtualization solution.
+
+How Vagrant Works
+=================
+Vagrant performs the following tasks with a single command
+- Create a VM using base images.
+- Configures the virtual machine specific settings and configuration using the Vagrant file.
+- Automates the configuration management of the virutal machine using the configuration management software.
+
+                             ------- Providers (VMware, Hyper-v, VirtualBox, libvirt or KVM)
+Vagrant ------> vagrant file 
+                             ------- Provisioners (ansible, chef, Puppet etc)
+							 
+Vagrant Terminology 	
+===================
+
+Box:			A box is a packaged Vagrant environment, typically a virtual machine with pre-installed Operating System (a OS base image is also called as Box)
+				Instead of building a virtual machine from scratch, which would be a slow and tedious process, 
+				Vagrant uses a base image to quickly clone a virtual machine. These base images are known as "boxes" in Vagrant, 
+				and specifying the box to use for your Vagrant environment is always the first step after creating a new Vagrantfile.
+
+Provider:		Provides virtualisation support - Local (VirtualBox, VMware, Docker, Hyper-V, KVM) and Remote (AWS, OpenStack)
+
+Vagrantfile:	Configuration file for the target machine's config. Holds information such as:
+				Which base image to use?
+				What will be the hostname?
+				What will be the network / compute?
+				Provisioner Config (Shell / Automation tools)
+Provisioner:	A tool used to set up the virtual environment and can be as simple as a shell script or can be an automation tools such as Ansible or Puppet
+
+Example:
+Shell Provisioner
+-----------------
+config.vm.provision "shell", inline: <<-SHELL
+  useradd demouser
+  apt install apache2
+  systemctl start apache2.service
+SHELL
+
+Ansbile Provisioner
+-------------------
+config.vm.provision "ansible" do |ansible|
+  ansible.verbose = "v"
+  ansible.playbook = "playbook.yml"
+  end  
+end
+
+
+
