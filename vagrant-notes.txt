@@ -53,5 +53,249 @@ config.vm.provision "ansible" do |ansible|
   end  
 end
 
+Installing Vagrant
+==================
+sudo dpkg -i vagrant_2.0.0_x86_64.deb 
+vagrant --version
+vagrant box list
+vagrant plugin list
+
+To use vagrant with KVM, we need the following plugins
+vagrant plugin install vagrant-libvirt 
+vagrant plugin install vagrant-mutate 					# By default most box images are compatible with Oracle VirtualBox and vagrant-mutate can convert it to libvirt
+vagrant plugin install vagrant-rekey-ssh 				# 
+
+Note: All Vagrant boxes come with the same ssh key and passwords installed. This means anyone who can ssh into your VM will be able to authenticate 
+to it if they try the vagrant default credentials. Additionally, vagrant boxes come with passwordless sudo privileges, so anyone able to SSH into 
+your box will be able to do whatever they want on it.
+
+vagrant plugin install vagrant-rekey-ssh
+
+The first time that this plugin is run, it generates a unique SSH key and stores it as ~/vagrant.d/less_insecure_private_key. Whenever you run the vagrant provision command, this plugin will run a script to check the authorized keys for the vagrant user to determine if the insecure key public key is present. If it is present, it will replace the insecure key with the public key for the generated key pair.
+
+Additionally, if the insecure public key is present, it will delete the passwords for root and vagrant, so that you cannot login using a password.
+
+Whenever vagrant tries to SSH into a box using an SSH key, this plugin will add the generated SSH key to the list of keys it tries. This ensures that you will still be able to SSH into boxes that have the insecure key installed.
+
+To secure already running VMs, you will need to run vagrant provision on them.
+
+vagrant provision
+==> default: Check for insecure vagrant key: OK (not present)
 
 
+nusrath@nusrath-HP-ZBook-15:~/Workstation/projects/vagrant$ vagrant up --provider=libvirt
+Bringing machine 'default' up with 'libvirt' provider...
+==> default: Uploading base box image as volume into libvirt storage...
+==> default: Creating image (snapshot of base box volume).
+==> default: Creating domain with the following settings...
+==> default:  -- Name:              vagrant_default
+==> default:  -- Domain type:       kvm
+==> default:  -- Cpus:              1
+==> default:  -- Feature:           acpi
+==> default:  -- Feature:           apic
+==> default:  -- Feature:           pae
+==> default:  -- Memory:            512M
+==> default:  -- Management MAC:    
+==> default:  -- Loader:            
+==> default:  -- Base box:          centos/7
+==> default:  -- Storage pool:      default
+==> default:  -- Image:             /var/lib/libvirt/images/vagrant_default.img (41G)
+==> default:  -- Volume Cache:      default
+==> default:  -- Kernel:            
+==> default:  -- Initrd:            
+==> default:  -- Graphics Type:     vnc
+==> default:  -- Graphics Port:     5900
+==> default:  -- Graphics IP:       127.0.0.1
+==> default:  -- Graphics Password: Not defined
+==> default:  -- Video Type:        cirrus
+==> default:  -- Video VRAM:        9216
+==> default:  -- Sound Type:	
+==> default:  -- Keymap:            en-us
+==> default:  -- TPM Path:          
+==> default:  -- INPUT:             type=mouse, bus=ps2
+==> default: Creating shared folders metadata...
+==> default: Starting domain.
+==> default: Waiting for domain to get an IP address...
+==> default: Waiting for SSH to become available...
+    default: 
+    default: Vagrant insecure key detected. Vagrant will automatically replace
+    default: this with a newly generated keypair for better security.
+    default: 
+    default: Inserting generated public key within guest...
+    default: Removing insecure key from the guest if it's present...
+    default: Key inserted! Disconnecting and reconnecting using new SSH key...
+==> default: Configuring and enabling network interfaces...
+    default: SSH address: 192.168.121.126:22
+    default: SSH username: vagrant
+    default: SSH auth method: private key
+==> default: Rsyncing folder: /home/nusrath/Workstation/projects/vagrant/ => /vagrant
+==> default: Check for insecure vagrant key: OK (not present)
+nusrath@nusrath-HP-ZBook-15:~/Workstation/projects/vagrant$ vagrant ssh
+[vagrant@localhost ~]$ cat /etc/r
+rc0.d/            rc2.d/            rc4.d/            rc6.d/            rc.local          request-key.conf  resolv.conf       rpm/              rsyslog.conf      rwtab             
+rc1.d/            rc3.d/            rc5.d/            rc.d/             redhat-release    request-key.d/    rpc               rsyncd.conf       rsyslog.d/        rwtab.d/          
+[vagrant@localhost ~]$ cat /etc/r
+rc0.d/            rc2.d/            rc4.d/            rc6.d/            rc.local          request-key.conf  resolv.conf       rpm/              rsyslog.conf      rwtab             
+rc1.d/            rc3.d/            rc5.d/            rc.d/             redhat-release    request-key.d/    rpc               rsyncd.conf       rsyslog.d/        rwtab.d/          
+[vagrant@localhost ~]$ exit
+logout
+Connection to 192.168.121.126 closed.
+nusrath@nusrath-HP-ZBook-15:~/Workstation/projects/vagrant$ ls
+README.md  Vagrantfile  vagrant-notes.txt
+nusrath@nusrath-HP-ZBook-15:~/Workstation/projects/vagrant$ cat Vagrantfile 
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "centos/7"
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  # config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+  #   vb.memory = "1024"
+  # end
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+    config.vm.provider  :libvirt do |domain|
+        domain.driver = "kvm"
+	domain.host = 'localhost'
+        domain.uri = 'qemu:///system'
+	domain.memory = 512
+	domain.cpus = 1
+    end
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
+end
+nusrath@nusrath-HP-ZBook-15:~/Workstation/projects/vagrant$ 
+nusrath@nusrath-HP-ZBook-15:~/Workstation/projects/vagrant$ cat Vagrantfile 
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "centos/7"
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  # config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+  #   vb.memory = "1024"
+  # end
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+    config.vm.provider  :libvirt do |domain|
+        domain.driver = "kvm"
+	domain.host = 'localhost'
+        domain.uri = 'qemu:///system'
+	domain.memory = 512
+	domain.cpus = 1
+    end
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
+end
